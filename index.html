@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Search</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        form {
+            margin: 20px 0;
+        }
+        label, input, select {
+            display: block;
+            margin: 10px auto;
+            text-align: center;
+        }
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .card {
+            background-color: #333;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 10px;
+            width: 300px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: left;
+            color: white;
+        }
+        .card h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <form id="flight-search-form">
+        <label for="origin">Origin:</label>
+        <select id="origin" name="origin" required>
+            <option value="JFK">JFK</option>
+            <option value="DEL">DEL</option>
+            <option value="SYD">SYD</option>
+            <option value="BOM">BOM</option>
+            <option value="BOM">BOM</option>
+            <option value="BLR">BLR</option>
+        </select>
+
+        <label for="destination">Destination:</label>
+        <select id="destination" name="destination" required>
+            <option value="JFK">JFK</option>
+            <option value="DEL">DEL</option>
+            <option value="SYD">SYD</option>
+            <option value="LHR">LHR</option>
+            <option value="CDG">CDG</option>
+            <option value="DOH">DOH</option>
+            <option value="SIN">SIN</option>
+        </select>
+
+        <label for="cabinSelection">Cabin Selection:</label>
+        <select id="cabinSelection" name="cabinSelection" required>
+            <option value="Economy">Economy</option>
+            <option value="Business">Business</option>
+            <option value="First">First</option>
+        </select>
+
+        <button type="submit">Search Flights</button>
+    </form>
+
+    <div id="results" class="card-container"></div>
+
+    <script>
+        document.getElementById('flight-search-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const origin = document.getElementById('origin').value;
+            const destination = document.getElementById('destination').value;
+            const cabinSelection = document.getElementById('cabinSelection').value;
+
+            const response = await fetch('http://localhost:3000/search-flights', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ origin, destination, cabinSelection }),
+            });
+
+            const data = await response.json();
+            displayResults(data);
+        });
+
+        function displayResults(data) {
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = '';  // Clear previous results
+
+            data.data.forEach(flight => {
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                const partnerProgram = document.createElement('h3');
+                partnerProgram.textContent = flight.partner_program;
+                card.appendChild(partnerProgram);
+
+                if (flight.min_economy_miles !== null) {
+                    const economy = document.createElement('p');
+                    economy.textContent = `Economy: ${flight.min_economy_miles} miles, $${flight.min_economy_tax} tax`;
+                    card.appendChild(economy);
+                }
+
+                if (flight.min_business_miles !== null) {
+                    const business = document.createElement('p');
+                    business.textContent = `Business: ${flight.min_business_miles} miles, $${flight.min_business_tax} tax`;
+                    card.appendChild(business);
+                }
+
+                if (flight.min_first_miles !== null) {
+                    const first = document.createElement('p');
+                    first.textContent = `First: ${flight.min_first_miles} miles, $${flight.min_first_tax} tax`;
+                    card.appendChild(first);
+                }
+
+                resultsContainer.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
